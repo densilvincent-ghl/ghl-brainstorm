@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GHL Support Brain Sprint</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+  :root {
+    --bg:#0f0f13;--surface:#17171e;--surface2:#1e1e28;--border:rgba(255,255,255,0.08);
+    --accent:#7c5cfc;--accent2:#00d4aa;--accent3:#ff6b6b;--text:#f0f0f5;--muted:#8888a0;--card-bg:#1a1a24;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:24px 20px 48px;}
+  h1,h2,h3,.label{font-family:'Space Grotesk',sans-serif;}
+
+  .header{max-width:880px;margin:0 auto 24px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .header-left h1{font-size:22px;font-weight:700;letter-spacing:-0.3px;background:linear-gradient(135deg,#fff 0%,#a89aff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .header-left p{font-size:13px;color:var(--muted);margin-top:4px;}
+  .meta-chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .chip{font-size:11px;font-weight:500;padding:4px 11px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);}
+  .chip.green{border-color:rgba(0,212,170,0.3);color:var(--accent2);background:rgba(0,212,170,0.08);}
+  .chip.purple{border-color:rgba(124,92,252,0.3);color:#c4b5fd;background:rgba(124,92,252,0.08);}
+
+  .timer-bar{max-width:880px;margin:0 auto 24px;background:var(--surface);border-radius:14px;border:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .timer-display{font-family:'Space Grotesk',monospace;font-size:28px;font-weight:700;color:var(--accent2);min-width:90px;letter-spacing:1px;}
+  .timer-label{font-size:12px;color:var(--muted);margin-top:2px;}
+  .progress-wrap{flex:1;min-width:160px;}
+  .progress-bg{height:6px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:3px;transition:width 1s linear;width:100%;}
+  .timer-btns{display:flex;gap:8px;}
+  .tbtn{font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;padding:7px 16px;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:all .15s;background:var(--surface2);color:var(--text);}
+  .tbtn:hover{border-color:var(--accent);color:#c4b5fd;}
+  .tbtn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .tbtn.primary:hover{background:#6d4ef0;}
+
+  .phase-tabs{max-width:880px;margin:0 auto 20px;display:flex;gap:4px;background:var(--surface);border-radius:12px;padding:5px;border:1px solid var(--border);}
+  .ptab{flex:1;text-align:center;padding:9px 8px;border-radius:8px;font-size:12px;font-weight:500;font-family:'Space Grotesk',sans-serif;cursor:pointer;color:var(--muted);transition:all .2s;white-space:nowrap;}
+  .ptab:hover{color:var(--text);background:var(--surface2);}
+  .ptab.active{background:var(--accent);color:#fff;font-weight:600;}
+  .ptab .pt-num{display:block;font-size:10px;opacity:0.7;margin-bottom:2px;}
+
+  .panel{max-width:880px;margin:0 auto;display:none;}
+  .panel.active{display:block;}
+
+  /* SCENARIO */
+  .scenario-card{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:22px 24px;margin-bottom:16px;position:relative;overflow:hidden;}
+  .scenario-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:16px 16px 0 0;}
+  .sc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;}
+  .sc-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--accent2);font-family:'Space Grotesk',sans-serif;}
+  .difficulty{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;}
+  .d-med{background:rgba(255,184,0,0.12);color:#ffd166;border:1px solid rgba(255,209,102,0.2);}
+  .d-hard{background:rgba(255,107,107,0.1);color:#ff8585;border:1px solid rgba(255,107,107,0.2);}
+  .d-easy{background:rgba(0,212,170,0.1);color:var(--accent2);border:1px solid rgba(0,212,170,0.2);}
+  .sc-title{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:600;margin-bottom:8px;line-height:1.3;}
+  .sc-desc{font-size:14px;color:#b0b0c8;line-height:1.6;}
+  .tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  .tag{font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(0,212,170,0.08);color:var(--accent2);border:1px solid rgba(0,212,170,0.2);}
+
+  .scenario-nav{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+  .snav-btn{font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;font-family:'Space Grotesk',sans-serif;font-weight:500;}
+  .snav-btn.active{background:rgba(124,92,252,0.15);border-color:var(--accent);color:#c4b5fd;}
+  .snav-btn:hover{border-color:rgba(124,92,252,0.4);color:var(--text);}
+
+  /* COACHING PANEL */
+  .coach-section{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;margin-bottom:16px;overflow:hidden;}
+  .coach-header{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--border);}
+  .coach-tab{flex:1;padding:12px 10px;text-align:center;font-size:12px;font-weight:600;font-family:'Space Grotesk',sans-serif;cursor:pointer;color:var(--muted);transition:all .15s;border-right:1px solid var(--border);}
+  .coach-tab:last-child{border-right:none;}
+  .coach-tab:hover{color:var(--text);background:rgba(255,255,255,0.03);}
+  .coach-tab.active{color:var(--accent2);background:rgba(0,212,170,0.06);}
+  .coach-tab .ct-icon{display:block;font-size:16px;margin-bottom:3px;}
+  .coach-body{padding:20px;}
+  .coach-pane{display:none;}
+  .coach-pane.active{display:block;}
+
+  .coach-card{background:var(--surface2);border-radius:12px;padding:14px 16px;margin-bottom:10px;border-left:3px solid var(--accent2);}
+  .coach-card.warn{border-left-color:#ffd166;}
+  .coach-card.tip{border-left-color:var(--accent);}
+  .coach-card.danger{border-left-color:#ff8585;}
+  .coach-q{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.4;}
+  .coach-a{font-size:13px;color:#b0b0c8;line-height:1.65;}
+  .coach-a ul{padding-left:16px;margin-top:4px;}
+  .coach-a li{margin-bottom:4px;}
+  .coach-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;}
+
+  .flip-btn{background:rgba(124,92,252,0.12);border:1px solid rgba(124,92,252,0.3);color:#c4b5fd;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .15s;margin-top:4px;}
+  .flip-btn:hover{background:rgba(124,92,252,0.22);}
+
+  /* NOTES */
+  .notes-section{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;}
+  .notes-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+  .section-title{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);}
+  .notes-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  @media(max-width:580px){.notes-grid{grid-template-columns:1fr;}.two-col{grid-template-columns:1fr!important;}}
+  .note-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical;min-height:90px;transition:border-color .15s;outline:none;}
+  .note-input:focus{border-color:var(--accent);}
+  .note-label{font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500;font-family:'Space Grotesk',sans-serif;text-transform:uppercase;letter-spacing:.05em;}
+  .note-wrap{display:flex;flex-direction:column;}
+
+  /* VOTES */
+  .vote-section{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;}
+  .vote-items{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+  .vote-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
+  .vote-item:hover{border-color:rgba(124,92,252,0.4);}
+  .vote-fill{position:absolute;left:0;top:0;bottom:0;background:rgba(124,92,252,0.1);border-radius:10px;transition:width .4s ease;}
+  .vote-text{font-size:13px;color:var(--text);position:relative;z-index:1;flex:1;}
+  .vote-count{font-size:12px;font-weight:700;color:var(--accent);font-family:'Space Grotesk',sans-serif;position:relative;z-index:1;}
+  .vote-pct{font-size:11px;color:var(--muted);position:relative;z-index:1;}
+
+  /* DISC CARDS */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+  .disc-card{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:18px;cursor:pointer;transition:all .2s;}
+  .disc-card:hover{border-color:rgba(124,92,252,0.4);background:rgba(124,92,252,0.05);}
+  .disc-card.selected{border-color:var(--accent);background:rgba(124,92,252,0.1);}
+  .disc-icon{font-size:20px;margin-bottom:8px;}
+  .disc-title{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;margin-bottom:5px;}
+  .disc-text{font-size:13px;color:var(--muted);line-height:1.5;}
+
+  /* PAIR VOTES */
+  .add-insight-row{display:flex;gap:8px;margin-top:10px;}
+  .add-insight-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;}
+  .add-insight-input:focus{border-color:var(--accent2);}
+  .add-btn{background:rgba(0,212,170,0.15);border:1px solid rgba(0,212,170,0.3);color:var(--accent2);border-radius:8px;padding:9px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .15s;}
+  .add-btn:hover{background:rgba(0,212,170,0.25);}
+
+  /* INSIGHTS */
+  .insights-board{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;}
+  .insights-list{margin-top:12px;display:flex;flex-direction:column;gap:8px;}
+  .insight-item{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;background:var(--surface2);border-radius:10px;border-left:2px solid var(--accent2);font-size:13px;line-height:1.5;color:#c0c0d8;}
+  .insight-num{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--accent2);flex-shrink:0;margin-top:1px;}
+  .no-insights{color:var(--muted);font-size:13px;font-style:italic;}
+
+  /* SUMMARY */
+  .summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;}
+  @media(max-width:580px){.summary-grid{grid-template-columns:1fr;}}
+  .stat-card{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;}
+  .stat-num{font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:700;background:linear-gradient(135deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .stat-label{font-size:12px;color:var(--muted);margin-top:3px;}
+
+  .hint{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.5;padding:10px 14px;background:rgba(124,92,252,0.06);border-radius:10px;border-left:2px solid rgba(124,92,252,0.4);}
+  .sc-btn{font-size:12px;font-weight:500;padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
+  .sc-btn:hover{border-color:var(--accent);color:#c4b5fd;}
+
+  .reveal-answer{display:none;margin-top:10px;background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.2);border-radius:8px;padding:12px;font-size:13px;color:#b0b0c8;line-height:1.6;}
+  .reveal-answer.open{display:block;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>⚡ GHL Support Brain Sprint</h1>
+    <p>30-min interactive session · 14 agents · Problem-solving & critical thinking</p>
+  </div>
+  <div class="meta-chips">
+    <span class="chip purple">GoHighLevel</span>
+    <span class="chip green">L1 Consultants</span>
+    <span class="chip">14 Members</span>
+  </div>
+</div>
+
+<!-- TIMER -->
+<div class="timer-bar">
+  <div>
+    <div class="timer-display" id="timer">30:00</div>
+    <div class="timer-label" id="phase-label">Ready to begin</div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bg"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+  <div class="timer-btns">
+    <button class="tbtn primary" id="start-btn" onclick="startTimer()">Start</button>
+    <button class="tbtn" onclick="resetTimer()">Reset</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="phase-tabs">
+  <div class="ptab active" onclick="switchPanel(0)"><span class="pt-num">0–5 min</span>Scenario Drop</div>
+  <div class="ptab" onclick="switchPanel(1)"><span class="pt-num">5–15 min</span>Inversion Blitz</div>
+  <div class="ptab" onclick="switchPanel(2)"><span class="pt-num">15–25 min</span>Question Drill</div>
+  <div class="ptab" onclick="switchPanel(3)"><span class="pt-num">25–30 min</span>Commit & Close</div>
+</div>
+
+<!-- PANEL 0: SCENARIO DROP -->
+<div class="panel active" id="panel-0">
+  <div class="hint">🎯 Facilitator: Read the scenario aloud. Ask 3–4 agents for their instant diagnosis. Don't correct — just map what you hear on a whiteboard.</div>
+  <div class="scenario-nav" id="snav"></div>
+  <div id="scenario-display"></div>
+
+  <div class="coach-section">
+    <div class="coach-header">
+      <div class="coach-tab active" onclick="switchCoach(0,0)"><span class="ct-icon">💬</span>Discussion Qs</div>
+      <div class="coach-tab" onclick="switchCoach(0,1)"><span class="ct-icon">⚠️</span>Common Mistakes</div>
+      <div class="coach-tab" onclick="switchCoach(0,2)"><span class="ct-icon">✅</span>Ideal Resolution</div>
+      <div class="coach-tab" onclick="switchCoach(0,3)"><span class="ct-icon">🧠</span>Facilitator Tips</div>
+    </div>
+    <div class="coach-body" id="coach-body-0"></div>
+  </div>
+</div>
+
+<!-- PANEL 1: INVERSION BLITZ -->
+<div class="panel" id="panel-1">
+  <div class="hint">✦ Split into 4 groups of 3–4. Task: list 5 ways to <strong style="color:#ff8585">make this problem worse</strong>. Then flip each into an insight.</div>
+
+  <div class="notes-section">
+    <div class="notes-header"><span class="section-title">Group Workspace — Inversion Notes</span></div>
+    <div class="notes-grid">
+      <div class="note-wrap"><div class="note-label">Group A — Make it worse...</div><textarea class="note-input" placeholder="List 5 ways to guarantee this problem gets worse..."></textarea></div>
+      <div class="note-wrap"><div class="note-label">Group A — Flipped insights</div><textarea class="note-input" placeholder="Now flip each item into an improvement insight..."></textarea></div>
+      <div class="note-wrap"><div class="note-label">Group B — Make it worse...</div><textarea class="note-input" placeholder=""></textarea></div>
+      <div class="note-wrap"><div class="note-label">Group B — Flipped insights</div><textarea class="note-input" placeholder=""></textarea></div>
+      <div class="note-wrap"><div class="note-label">Group C — Make it worse...</div><textarea class="note-input" placeholder=""></textarea></div>
+      <div class="note-wrap"><div class="note-label">Group C — Flipped insights</div><textarea class="note-input" placeholder=""></textarea></div>
+      <div class="note-wrap"><div class="note-label">Group D — Make it worse...</div><textarea class="note-input" placeholder=""></textarea></div>
+      <div class="note-wrap"><div class="note-label">Group D — Flipped insights</div><textarea class="note-input" placeholder=""></textarea></div>
+    </div>
+  </div>
+
+  <div class="vote-section">
+    <div class="notes-header">
+      <span class="section-title">🔥 Best Inversion Insight — Team Vote</span>
+      <button class="sc-btn" onclick="resetVotes()">Reset</button>
+    </div>
+    <div class="vote-items" id="vote-list"></div>
+  </div>
+
+  <div class="coach-section">
+    <div class="coach-header">
+      <div class="coach-tab active" onclick="switchCoach(1,0)"><span class="ct-icon">🔄</span>Inversion Examples</div>
+      <div class="coach-tab" onclick="switchCoach(1,1)"><span class="ct-icon">💡</span>Facilitator Hints</div>
+      <div class="coach-tab" onclick="switchCoach(1,2)"><span class="ct-icon">📊</span>Debrief Guide</div>
+    </div>
+    <div class="coach-body" id="coach-body-1"></div>
+  </div>
+</div>
+
+<!-- PANEL 2: QUESTION DRILL -->
+<div class="panel" id="panel-2">
+  <div class="hint">🔍 In pairs: agree on the single most important question you'd ask <em>before</em> solving the scenario. Share with the group and vote on the best one.</div>
+
+  <div class="two-col">
+    <div class="disc-card" id="disc-diag" onclick="selectDisc('diag')">
+      <div class="disc-icon">🔬</div>
+      <div class="disc-title">Diagnostic question</div>
+      <div class="disc-text">Seeks to understand <em>what</em> or <em>why</em> — finds the root before solving.</div>
+    </div>
+    <div class="disc-card" id="disc-sol" onclick="selectDisc('sol')">
+      <div class="disc-icon">⚡</div>
+      <div class="disc-title">Solutioning question</div>
+      <div class="disc-text">Jumps to <em>how</em> — fast but risky without diagnosis first.</div>
+    </div>
+  </div>
+
+  <div class="vote-section">
+    <div class="notes-header">
+      <span class="section-title">💬 Pair Questions — Vote for Best</span>
+      <button class="sc-btn" onclick="resetPairVotes()">Reset</button>
+    </div>
+    <div class="vote-items" id="pair-vote-list"></div>
+    <div class="add-insight-row">
+      <input class="add-insight-input" id="new-question" placeholder="Add a pair's question here...">
+      <button class="add-btn" onclick="addPairQuestion()">Add</button>
+    </div>
+  </div>
+
+  <div class="coach-section">
+    <div class="coach-header">
+      <div class="coach-tab active" onclick="switchCoach(2,0)"><span class="ct-icon">❓</span>Sample Questions</div>
+      <div class="coach-tab" onclick="switchCoach(2,1)"><span class="ct-icon">🎯</span>The Ideal Question</div>
+      <div class="coach-tab" onclick="switchCoach(2,2)"><span class="ct-icon">📋</span>Debrief Points</div>
+    </div>
+    <div class="coach-body" id="coach-body-2"></div>
+  </div>
+</div>
+
+<!-- PANEL 3: COMMIT & CLOSE -->
+<div class="panel" id="panel-3">
+  <div class="hint">✅ Each person writes one sentence: <em>"Next time I face a complex GHL support problem, I will..."</em> — Facilitator picks 4–5 to share aloud.</div>
+
+  <div class="summary-grid">
+    <div class="stat-card"><div class="stat-num" id="s-insights">0</div><div class="stat-label">Insights captured</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-votes">0</div><div class="stat-label">Team votes cast</div></div>
+    <div class="stat-card"><div class="stat-num">30</div><div class="stat-label">Minutes invested</div></div>
+  </div>
+
+  <div class="insights-board">
+    <div class="notes-header"><span class="section-title">📌 Team Insights Board</span></div>
+    <div class="insights-list" id="insights-list"><span class="no-insights">No insights added yet.</span></div>
+    <div class="add-insight-row">
+      <input class="add-insight-input" id="new-insight" placeholder="Add a key takeaway from today's session...">
+      <button class="add-btn" onclick="addInsight()">Add</button>
+    </div>
+  </div>
+
+  <div class="notes-section">
+    <div class="section-title" style="margin-bottom:12px">Personal Commitment Cards</div>
+    <div class="notes-grid">
+      <div class="note-wrap"><div class="note-label">My commitment</div><textarea class="note-input" placeholder="Next time I face a complex GHL support problem, I will..."></textarea></div>
+      <div class="note-wrap"><div class="note-label">Accountability partner notes</div><textarea class="note-input" placeholder="My partner's name: ___&#10;We'll follow up by: ___"></textarea></div>
+    </div>
+  </div>
+
+  <div class="coach-section">
+    <div class="coach-header">
+      <div class="coach-tab active" onclick="switchCoach(3,0)"><span class="ct-icon">🏁</span>Closing Script</div>
+      <div class="coach-tab" onclick="switchCoach(3,1)"><span class="ct-icon">📈</span>L1 → L2 Mindset</div>
+      <div class="coach-tab" onclick="switchCoach(3,2)"><span class="ct-icon">🔁</span>Follow-up Actions</div>
+    </div>
+    <div class="coach-body" id="coach-body-3"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// SCENARIOS
+// ============================================================
+const scenarios = [
+  {
+    id:0, label:"CRM & Automation", difficulty:"med",
+    title:"Workflow stopped triggering after a contact update",
+    desc:"A client reports that their lead nurture workflow — working fine last week — has stopped sending follow-up SMS after new contacts are added via a form. The client has 3 active workflows and recently made changes to their pipeline stages.",
+    tags:["Workflows","CRM","SMS","Triggers"],
+    coaching: {
+      discussion:[
+        {q:"What changed?",a:"Before touching any workflow, always establish a clear change timeline. Ask: 'What was modified in the last 7 days?' Pipeline stage changes, workflow edits, contact field updates, or even a GHL platform update can silently break triggers. Change = suspect."},
+        {q:"Is this affecting all contacts or just some?",a:"Scope matters before diagnosis. If only 10% of contacts are affected, the issue is likely a filter or condition. If 100% are affected, it's a trigger or enrollment setting. Ask the client to test with a fresh dummy contact before assuming the worst."},
+        {q:"Are there conflicting workflow enrollment rules?",a:"In GHL, if a contact is already enrolled in one workflow, it may be blocked from re-enrolling in another. Check 'Allow re-enrollment' settings and look for workflow priority conflicts between the 3 active workflows."},
+        {q:"Was a trigger condition recently added or edited?",a:"A common L1 mistake is not checking the trigger filters. If someone added a tag condition or pipeline stage filter to the workflow trigger, new contacts without that tag simply won't qualify — they won't error, they'll just silently skip."}
+      ],
+      mistakes:[
+        {q:"Jumping straight to rebuilding the workflow",a:"This destroys the audit trail and wastes time. Always diagnose first — check history, test with a dummy contact, look at workflow execution logs. Rebuilding is a last resort."},
+        {q:"Not checking workflow execution logs",a:"GHL has a built-in workflow history/execution log per contact. Checking this shows exactly where the workflow stopped and why — whether it was a failed action, a skipped trigger, or a condition mismatch. Agents who skip this are flying blind."},
+        {q:"Assuming it's a GHL platform bug",a:"Blaming the platform is the path of least resistance and almost always wrong. In 90% of cases, something in the client's account changed. Verify internally before escalating to GHL support."},
+        {q:"Not checking if SMS credits are depleted",a:"If the client's SMS usage limit or credit balance hit zero, the workflow will appear to run but SMS actions will silently fail. Always check account billing/usage when SMS stops sending.",type:"warn"}
+      ],
+      resolution:[
+        {q:"Step 1 — Check execution logs",a:"Go to the contact that should have triggered → open 'Activity' → look for workflow execution history. Note exactly which step failed or was skipped."},
+        {q:"Step 2 — Test with a fresh dummy contact",a:"Create a test contact and submit it through the form manually. Watch the workflow in real time. This isolates whether the issue is the trigger or the actions inside the workflow."},
+        {q:"Step 3 — Audit the trigger conditions",a:"Open the workflow → review the trigger → check all filters and conditions. Compare to what was working before. Look for any recently added tags, stages, or custom field conditions."},
+        {q:"Step 4 — Check enrollment settings",a:"Ensure 'Allow re-enrollment' is enabled if needed. Also check whether another workflow has an action that is removing the contact from this workflow or applying a conflicting tag."},
+        {q:"Step 5 — Review pipeline stage changes",a:"If the client recently renamed or reorganised pipeline stages, any stage-based triggers may have broken silently. Re-select the correct stage in the trigger."}
+      ],
+      tips:[
+        {q:"Facilitator debrief angle",a:"Ask the group: 'How many of you went for the workflow first?' vs 'How many asked what changed first?' This surfaces the classic L1 pattern of jumping to the solution before diagnosing. The goal is to shift from fix-mode to investigate-mode."},
+        {q:"Key teaching moment",a:"The GHL execution log is the most underused L1 tool. Most agents don't know it exists or don't check it by default. Make this a non-negotiable first step after today."},
+        {q:"Energy tip",a:"Give groups only 4 minutes for their first diagnosis before stopping them. The time pressure reveals their natural instincts — then you can debrief what those instincts missed."}
+      ]
+    },
+    inversions:[
+      {worse:"Immediately edit the live workflow while it's in use",flip:"Always clone a workflow before editing — never modify live automations mid-client-run."},
+      {worse:"Tell the client 'it's a GHL bug' without checking",flip:"Own the investigation fully before escalating — check logs, reproduce the issue, document findings first."},
+      {worse:"Ignore the other 2 active workflows entirely",flip:"Always audit all active workflows for conflicts when one breaks — they interact silently."},
+      {worse:"Skip testing with a dummy contact",flip:"A dummy contact test is the fastest way to reproduce and confirm any trigger issue — make it step 1."},
+      {worse:"Give the client a fix ETA without diagnosing",flip:"Never commit to a timeline before understanding the root cause — underpromise, then overdeliver."}
+    ],
+    idealQuestion:"What changed in this account in the last 7 days?",
+    sampleQuestions:[
+      "What changed in this account in the last 7 days?",
+      "Is this affecting every new contact or only specific ones?",
+      "Can you show me which contacts should have triggered but didn't?",
+      "Are there any other active workflows that touch the same contacts?",
+      "When exactly did the SMS stop — what was the last successful send?"
+    ]
+  },
+  {
+    id:1, label:"Conversation AI", difficulty:"hard",
+    title:"AI bot booking appointments outside working hours",
+    desc:"A client's Conversation AI chatbot is booking appointments at 2 AM and other off-hours slots. It's supposed to be restricted to 9 AM–6 PM only. Three customers already received wrong booking confirmations.",
+    tags:["Conversation AI","Calendar","Booking","AI Config"],
+    coaching:{
+      discussion:[
+        {q:"What is the blast radius right now?",a:"Three customers already have wrong confirmations. Before fixing the bot, the agent must address the immediate client damage — reach out to affected customers, offer to reschedule, and pause the bot temporarily. Stopping the bleeding comes before root cause analysis."},
+        {q:"Which calendar is the AI connected to?",a:"In GHL, Conversation AI can be connected to multiple calendar types — round-robin, service, or personal. Each has its own availability settings. If the AI is pulling from the wrong calendar, it will show all slots regardless of the working hours set in the AI config."},
+        {q:"Are working hours set in the AI config or the calendar — or both?",a:"This is a critical distinction. GHL has working hours settings in two places: inside the Conversation AI configuration AND inside the calendar itself. If one says 9–6 and the other has no restriction, the AI will use the least restrictive setting."},
+        {q:"Is the timezone configured correctly?",a:"If the calendar's timezone is set to a different zone than the client's business location, slots that appear to be 2 AM may actually be correct in another timezone. Verify the calendar timezone matches the client's operating timezone."}
+      ],
+      mistakes:[
+        {q:"Fixing the bot without pausing it first",a:"If the bot is live and still booking wrong slots, the agent's first action must be to pause it immediately. Fixing the config while it continues booking is unacceptable — more customers will be affected during the investigation.",type:"danger"},
+        {q:"Only checking one place for availability settings",a:"Agents often check only the Conversation AI settings and miss that the calendar itself has separate availability/hours configuration. Both must be checked and aligned."},
+        {q:"Not notifying the affected customers",a:"Three customers already have wrong confirmations. They need to be contacted immediately regardless of the technical fix. Failing to do this damages the client's reputation and trust.",type:"warn"},
+        {q:"Assuming it's a GHL platform glitch",a:"Off-hours booking is almost always a misconfiguration — either timezone mismatch, wrong calendar connection, or availability settings not applied correctly. Verify config thoroughly before escalating."}
+      ],
+      resolution:[
+        {q:"Step 1 — Pause the bot immediately",a:"Go to the client's Conversation AI settings → toggle the bot to Inactive or Paused. This stops new wrong bookings while you investigate."},
+        {q:"Step 2 — Identify and contact the 3 affected customers",a:"Coordinate with the client to reach out to the 3 customers who received wrong confirmation times. Offer to reschedule to correct slots."},
+        {q:"Step 3 — Audit the calendar connection",a:"In Conversation AI settings → check which calendar is connected → open that calendar → verify the availability/hours settings are correctly set to 9 AM–6 PM in the correct timezone."},
+        {q:"Step 4 — Check timezone alignment",a:"Confirm the calendar's timezone setting matches the client's business location. A mismatch here is the most common cause of off-hours booking."},
+        {q:"Step 5 — Test before reactivating",a:"Create a test conversation, trigger the booking flow, and verify only correct slots appear. Only reactivate the bot after confirming the issue is resolved with a full end-to-end test."}
+      ],
+      tips:[
+        {q:"Facilitator debrief angle",a:"Ask: 'What was the very first thing you wanted to do?' Most agents will say 'fix the config'. The correct answer is 'pause the bot'. This scenario teaches the concept of stopping active harm before diagnosing cause."},
+        {q:"Key teaching moment",a:"Customer impact management is part of support, not just technical fixes. The 3 affected customers are the client's problem right now — agents who only think about the technical fix will miss this."},
+        {q:"Escalation criteria",a:"If after checking calendar settings and timezone the issue persists, this qualifies for L2 escalation. The agent should document: what was checked, what settings were found, and the test results before escalating."}
+      ]
+    },
+    inversions:[
+      {worse:"Leave the bot running while you investigate",flip:"Always pause automation immediately when it is actively causing customer-facing errors."},
+      {worse:"Tell the client you're looking into it without giving a status update",flip:"Set a clear update cadence — 'I'll update you every 30 minutes until resolved' builds trust during incidents."},
+      {worse:"Fix the AI settings without testing",flip:"Always run a full end-to-end test conversation before reactivating any AI feature after a fix."},
+      {worse:"Ignore the 3 affected customers",flip:"Customer impact always takes priority — fix the damage to real people before fixing the configuration."},
+      {worse:"Change multiple settings at once",flip:"Change one thing at a time and test after each change — otherwise you won't know what actually fixed it."}
+    ],
+    idealQuestion:"Is the bot currently still active and booking new appointments?",
+    sampleQuestions:[
+      "Is the bot currently still active and booking new appointments?",
+      "Which calendar is the Conversation AI connected to?",
+      "What timezone is the calendar set to vs the client's actual location?",
+      "Have the 3 affected customers been notified yet?",
+      "Where exactly are the working hours set — in the AI config, the calendar, or both?"
+    ]
+  },
+  {
+    id:2, label:"Funnel & Forms", difficulty:"easy",
+    title:"Form submissions not creating contacts in CRM",
+    desc:"A client's landing page form is live but the last 48 hours of form submissions are not appearing in CRM as new contacts. The page is published and the client is running paid ads sending live traffic to it.",
+    tags:["Forms","CRM","Funnels","Contacts"],
+    coaching:{
+      discussion:[
+        {q:"Is the form connected to the right sub-account or location?",a:"In GHL, forms are tied to specific sub-accounts. If the form was copied or the client has multiple locations, submissions may be going to a different sub-account entirely. Always confirm which sub-account the form belongs to and where the agent is looking for contacts."},
+        {q:"Are there any form field mapping issues?",a:"GHL forms require field mapping to link form fields to CRM contact fields. If the email or name field is not mapped to a standard contact field, the submission may complete without creating a contact record — or create one with missing data."},
+        {q:"Is a workflow supposed to be triggered but failing?",a:"Some setups use a form submission trigger → workflow → create/update contact. If the workflow is broken or paused, the contact creation step never runs. The form may be working perfectly but the downstream workflow is the issue."},
+        {q:"Has anything changed with the funnel or form in the last 48–72 hours?",a:"The 48-hour window is a specific clue. Ask what changed at exactly that time. A form edit, a funnel publish, or a workflow pause around that window is almost certainly the cause."}
+      ],
+      mistakes:[
+        {q:"Assuming the form is broken when it may be the workflow",a:"A form can submit successfully (data lands in GHL backend) but no contact appears if the workflow that creates the contact is paused or errored. Test the form separately from the workflow chain."},
+        {q:"Not checking the form submission log",a:"GHL logs every form submission. Check Forms → Submissions to see if submissions are being received at all. If they appear there but not in CRM, the issue is downstream (workflow/mapping). If they don't appear, the form itself is the issue.",type:"warn"},
+        {q:"Forgetting to check for duplicate prevention settings",a:"GHL has duplicate contact prevention settings. If the same email addresses are being submitted again, GHL may be intentionally not creating duplicate contacts — this is a feature, not a bug."},
+        {q:"Not testing with a live submission",a:"The fastest diagnostic is to submit the form yourself right now and watch what happens in real time. Don't spend 30 minutes theorising when a 30-second test gives you the answer."}
+      ],
+      resolution:[
+        {q:"Step 1 — Check Forms → Submissions",a:"Go to Sites → Funnels → the specific funnel → Forms → Submissions. Confirm whether recent submissions appear here. This tells you immediately if the form is receiving data or not."},
+        {q:"Step 2 — Submit the form yourself right now",a:"Open the form in a browser and submit a test entry with a unique email. Watch whether it appears in Submissions and whether a new contact is created."},
+        {q:"Step 3 — Review field mapping",a:"Open the form builder → check that the email field is mapped to 'Email' (standard field) and name fields are mapped correctly. Unmapped fields mean no contact record."},
+        {q:"Step 4 — Check the associated workflow",a:"If a form submission → workflow is in use, open that workflow and check its execution log. Look for errors, paused status, or unenrollment issues."},
+        {q:"Step 5 — Check duplicate settings",a:"Go to Settings → Business Profile or CRM settings → look for duplicate contact handling. If 'prevent duplicates' is on, re-submitting the same email will not create a new contact."}
+      ],
+      tips:[
+        {q:"Facilitator debrief angle",a:"This scenario is deliberately 'easy' — use it to teach systematic thinking even for simple problems. The trap is over-complicating it. The fastest fix is: check submissions log → submit test → find the gap. Agents who skip to complex theories miss this."},
+        {q:"Key teaching moment",a:"'Test it yourself first' is the most underused diagnostic habit at L1. A live test submission takes 30 seconds and eliminates 80% of guesswork. Make this a reflex."},
+        {q:"Paid traffic urgency",a:"The detail that 'paid ads are running' is a pressure signal. The client is spending money on traffic right now and losing leads. This should increase the urgency of the response, not the complexity of the diagnosis."}
+      ]
+    },
+    inversions:[
+      {worse:"Spend 1 hour theorising without testing the form",flip:"Submit the form yourself in the first 2 minutes — a live test is always faster than theory."},
+      {worse:"Tell the client the form is broken without checking submissions",flip:"Check the GHL submissions log first — the form may be working fine and the issue is downstream."},
+      {worse:"Edit the live form while ads are running traffic to it",flip:"Never edit a form that has live paid traffic — pause the ads first or test on a duplicate form."},
+      {worse:"Ignore the paid ads context",flip:"Paid ads = money being wasted right now — urgency and communication to the client must match this reality."},
+      {worse:"Assume it's a GHL bug because it worked before",flip:"'It worked before' means something changed — find that change before looking for external causes."}
+    ],
+    idealQuestion:"Are the form submissions appearing in the GHL submissions log?",
+    sampleQuestions:[
+      "Are the form submissions appearing in the GHL submissions log?",
+      "What changed 48 hours ago — form edit, funnel republish, or workflow change?",
+      "Can I submit the form right now and watch what happens in real time?",
+      "Is email field correctly mapped to a standard contact field?",
+      "Is there a workflow triggered on form submission, and is it active?"
+    ]
+  },
+  {
+    id:3, label:"Reviews & Reputation", difficulty:"med",
+    title:"Review requests going to wrong phone number",
+    desc:"Automated Google review request texts are being sent to an old phone number, not the updated one. The automation is sending 100+ messages daily and several customers have complained about receiving texts on old numbers.",
+    tags:["Reviews","SMS","Contacts","Automation"],
+    coaching:{
+      discussion:[
+        {q:"Is this one contact or many contacts?",a:"If it's a single contact with a stale number, that's a data quality issue. If it's 100+ contacts, the problem is systemic — either the contact import didn't update phone numbers, or the review automation is pulling from the wrong field. Scope determines the solution."},
+        {q:"Where is the phone number being pulled from — the contact field or a custom field?",a:"GHL review request automations pull from the 'Phone' standard field. If the client stored the updated number in a custom field instead of updating the standard Phone field, the automation will keep using the old one. This is a very common setup error."},
+        {q:"Was there a recent contact import or bulk update?",a:"If the client recently imported a CSV to update contacts, a column mapping error could have written the new phone to a custom field while leaving the standard Phone field unchanged. Check import history."},
+        {q:"Are customers opting out or complaining?",a:"Customers receiving texts on old numbers may belong to different people now (reassigned numbers). This is not just an annoyance — it may violate SMS compliance rules. The automation should be paused immediately."}
+      ],
+      mistakes:[
+        {q:"Not pausing the automation immediately",a:"With 100+ messages per day going to wrong numbers, every minute the automation runs causes more damage. Pause it first, then diagnose. This is non-negotiable.",type:"danger"},
+        {q:"Manually updating contacts one by one",a:"If 100+ contacts are affected, manual updates are not a solution. The correct approach is a bulk CSV update or a workflow that copies the custom field value to the standard Phone field."},
+        {q:"Not checking which phone field the automation uses",a:"Before updating any contact data, confirm exactly which field the review workflow reads. If it reads 'Phone' (standard) and contacts have new numbers only in a custom field, updating contacts is useless without also fixing the field mapping."},
+        {q:"Ignoring SMS compliance risk",a:"Texts to old/reassigned numbers can constitute unsolicited messaging to people who never opted in. Flag this to the client as a potential compliance issue, not just a technical one.",type:"warn"}
+      ],
+      resolution:[
+        {q:"Step 1 — Pause the review automation immediately",a:"Go to Automations/Workflows → find the review request workflow → pause it now. Stop the bleeding before anything else."},
+        {q:"Step 2 — Identify the affected contacts",a:"Use CRM filters to identify contacts where the phone number may be outdated. Check if there's a custom field with the correct updated number."},
+        {q:"Step 3 — Audit the workflow field mapping",a:"Open the review request workflow → find the SMS action → confirm which field it uses for the phone number. If it reads {{contact.phone}}, it's using the standard Phone field."},
+        {q:"Step 4 — Bulk update contact phone numbers",a:"Export affected contacts → correct the Phone (standard) field in the CSV → re-import with 'Update existing contacts' enabled. Verify a sample of contacts after import."},
+        {q:"Step 5 — Test and reactivate",a:"Test the workflow with a corrected test contact. Confirm the SMS goes to the right number. Then reactivate the automation."}
+      ],
+      tips:[
+        {q:"Facilitator debrief angle",a:"Ask: 'What did you do first?' The correct answer is 'pause the automation'. Then ask: 'What's the difference between a data problem and a configuration problem here?' This surfaces field mapping awareness — one of the most important L1 skills."},
+        {q:"Key teaching moment",a:"Standard fields vs custom fields is a GHL concept that trips up many L1 agents. Automations and workflows almost always use standard fields (Phone, Email, Name). If a client uses custom fields for key data, nothing will work as expected."},
+        {q:"Compliance awareness",a:"This is a good moment to introduce the concept of SMS compliance. Sending texts to numbers that didn't opt in is a legal issue, not just a support ticket. Agents should flag this language to the client."}
+      ]
+    },
+    inversions:[
+      {worse:"Keep the automation running while you investigate",flip:"Always pause automations causing customer-facing errors before any investigation begins."},
+      {worse:"Update phone numbers one by one manually",flip:"Any fix affecting 100+ records requires a bulk solution — CSV import or workflow-based field copy."},
+      {worse:"Assume the automation is pulling from the right field without checking",flip:"Verify exactly which CRM field the automation reads before making any data changes."},
+      {worse:"Treat this as a pure tech issue without flagging compliance risk",flip:"SMS to non-opted-in numbers is a legal risk — always flag this language to the client even while fixing the technical issue."},
+      {worse:"Fix the data without testing the automation end-to-end",flip:"Always do a full end-to-end test with a real test contact before reactivating any SMS automation."}
+    ],
+    idealQuestion:"Is the automation currently still running and sending messages?",
+    sampleQuestions:[
+      "Is the automation currently still running and sending messages right now?",
+      "Which field does the review workflow read — standard Phone or a custom field?",
+      "Was there a recent contact import, and what were the column mappings?",
+      "How many contacts are affected — is this isolated or systemic?",
+      "Have any customers replied or opted out due to these wrong texts?"
+    ]
+  },
+  {
+    id:4, label:"SaaS & Billing", difficulty:"hard",
+    title:"Client's sub-account still showing Starter limits after Pro upgrade",
+    desc:"A white-label agency upgraded their client from Starter to Pro plan 3 days ago. The client's dashboard still shows Starter limits and Pro features are inaccessible. The upgrade shows as completed in Stripe.",
+    tags:["SaaS Mode","Billing","Stripe","Sub-accounts"],
+    coaching:{
+      discussion:[
+        {q:"Is the Stripe charge confirmed and has it settled?",a:"'Completed in Stripe' can mean different things. A payment can show as succeeded in Stripe but still be in a processing/pending state that hasn't synced to GHL. Ask for the Stripe transaction ID and check the exact status — 'succeeded' is different from 'processing' or 'requires_capture'."},
+        {q:"Was the upgrade done through GHL SaaS Mode or directly in Stripe?",a:"If the agency manually charged the client in Stripe without going through GHL's SaaS Mode upgrade flow, GHL has no knowledge of the upgrade. The payment and the plan change are two separate actions in GHL — money moving doesn't automatically upgrade the account."},
+        {q:"Has a cache clear / logout-login been tried?",a:"Sometimes GHL plan changes take time to reflect in the UI. Ask the client to log out completely, clear browser cache, and log back in. This is a simple first check before escalating."},
+        {q:"Is the plan assigned at the agency level or the sub-account level?",a:"In GHL SaaS Mode, the agency assigns plans to sub-accounts. Even if Stripe shows a charge, the agency owner must go into their agency dashboard and manually assign the Pro plan to the specific sub-account. This step is often missed."}
+      ],
+      mistakes:[
+        {q:"Assuming Stripe success = GHL plan update",a:"This is the #1 mistake in SaaS billing issues. Stripe and GHL are separate systems. A Stripe charge does not automatically update GHL plan limits — the plan must also be assigned inside GHL SaaS Mode by the agency.",type:"danger"},
+        {q:"Not checking the agency dashboard for plan assignment",a:"The client is a sub-account. The Pro plan must be assigned by the agency owner in their GHL agency dashboard under SaaS Configurator. Most L1 agents check the client's sub-account and never look at the agency level."},
+        {q:"Escalating without trying a session refresh first",a:"A logout-login and cache clear resolves about 20% of 'plan not updating' cases. Always try this before opening an escalation — it saves time and reduces unnecessary tickets."},
+        {q:"Not getting the Stripe transaction ID",a:"Any billing issue needs the Stripe transaction ID documented. Without it, GHL support and billing teams cannot investigate. Always collect this before escalating.",type:"warn"}
+      ],
+      resolution:[
+        {q:"Step 1 — Get the Stripe transaction ID",a:"Ask the agency for the exact Stripe payment/charge ID (starts with 'ch_' or 'pi_'). Verify the status is 'succeeded' and note the amount and timestamp."},
+        {q:"Step 2 — Ask client to clear cache and re-login",a:"Have the client fully log out, clear browser cache/cookies, and log back in. Check if Pro features now appear. If yes — resolved. If no — continue."},
+        {q:"Step 3 — Check plan assignment in agency dashboard",a:"Log into the agency's GHL account → go to SaaS Configurator or Sub-Accounts → find the specific client sub-account → verify which plan is assigned. If it still shows Starter, manually assign Pro here."},
+        {q:"Step 4 — Check GHL SaaS upgrade flow was used correctly",a:"Confirm the upgrade was processed through GHL's SaaS upgrade flow, not as a manual Stripe charge. If it was manual, the agency needs to also update the plan in GHL separately."},
+        {q:"Step 5 — Escalate with documentation if still unresolved",a:"If plan assignment is correct in the agency dashboard but limits still show Starter, document: Stripe transaction ID, agency account ID, sub-account ID, plan assigned, and screenshots. Escalate to GHL billing support with all of this."}
+      ],
+      tips:[
+        {q:"Facilitator debrief angle",a:"Ask: 'Where did you look first — the client's account or the agency account?' This reveals whether agents understand the GHL hierarchy. The client is a sub-account — their plan is controlled by the agency, not by the client themselves."},
+        {q:"Key teaching moment",a:"The GHL SaaS architecture — agency → sub-account — is fundamental to understanding most billing and plan issues. Many L1 agents only see the sub-account level and miss that everything is controlled from above."},
+        {q:"Escalation readiness",a:"This scenario often ends in escalation. The teaching point is not just how to fix it, but how to escalate well — with all data collected, clearly documented, and a summary of what was already checked."}
+      ]
+    },
+    inversions:[
+      {worse:"Confirm the upgrade is done based only on Stripe",flip:"Stripe payment ≠ GHL plan update — always verify plan assignment inside GHL SaaS Mode separately."},
+      {worse:"Look only at the sub-account without checking the agency dashboard",flip:"In GHL's hierarchy, plan control lives at the agency level — always check the agency dashboard for plan assignments."},
+      {worse:"Escalate immediately without trying a cache clear",flip:"A logout-login and cache clear resolves ~20% of UI-based plan display issues — always try this first."},
+      {worse:"Escalate without collecting the Stripe transaction ID",flip:"Never escalate a billing issue without the Stripe transaction ID — it's the single most important piece of evidence."},
+      {worse:"Change plan settings without confirming the charge was legitimate",flip:"Verify the payment amount and status in Stripe matches what the Pro plan costs before making any plan changes."}
+    ],
+    idealQuestion:"Was the plan upgrade done through GHL SaaS Mode or as a manual Stripe charge?",
+    sampleQuestions:[
+      "Was the plan upgrade done through GHL's SaaS upgrade flow or as a manual Stripe charge?",
+      "What is the Stripe transaction ID and what is its exact status?",
+      "Has the client tried logging out completely and clearing browser cache?",
+      "In the agency dashboard, what plan is currently assigned to this sub-account?",
+      "Has it been more than 24 hours since the upgrade — could this be a sync delay?"
+    ]
+  }
+];
+
+// ============================================================
+// STATIC COACHING CONTENT (per panel, scenario-aware)
+// ============================================================
+function getCoachContent(panelIdx, tabIdx, scenarioIdx) {
+  const s = scenarios[scenarioIdx];
+
+  if (panelIdx === 0) {
+    if (tabIdx === 0) { // Discussion Qs
+      return `<div class="coach-label">Discussion questions — ${s.label}</div>` +
+        s.coaching.discussion.map((item,i) => `
+          <div class="coach-card">
+            <div class="coach-q">Q${i+1}: ${item.q}</div>
+            <button class="flip-btn" onclick="toggleReveal(this)">Show facilitator answer ▾</button>
+            <div class="reveal-answer">${item.a}</div>
+          </div>`).join('');
+    }
+    if (tabIdx === 1) { // Common Mistakes
+      return `<div class="coach-label">Common L1 mistakes — ${s.label}</div>` +
+        s.coaching.mistakes.map(item => `
+          <div class="coach-card ${item.type==='warn'?'warn':item.type==='danger'?'danger':''}">
+            <div class="coach-q">❌ ${item.q}</div>
+            <button class="flip-btn" onclick="toggleReveal(this)">Why it matters ▾</button>
+            <div class="reveal-answer">${item.a}</div>
+          </div>`).join('');
+    }
+    if (tabIdx === 2) { // Ideal Resolution
+      return `<div class="coach-label">Ideal resolution path — ${s.label}</div>` +
+        s.coaching.resolution.map(item => `
+          <div class="coach-card tip">
+            <div class="coach-q">${item.q}</div>
+            <div class="coach-a">${item.a}</div>
+          </div>`).join('');
+    }
+    if (tabIdx === 3) { // Facilitator Tips
+      return `<div class="coach-label">Facilitator notes — ${s.label}</div>` +
+        s.coaching.tips.map(item => `
+          <div class="coach-card">
+            <div class="coach-q">💡 ${item.q}</div>
+            <div class="coach-a">${item.a}</div>
+          </div>`).join('');
+    }
+  }
+
+  if (panelIdx === 1) {
+    if (tabIdx === 0) { // Inversion Examples
+      return `<div class="coach-label">Inversion examples for this scenario</div>` +
+        s.inversions.map((inv,i) => `
+          <div class="coach-card danger">
+            <div class="coach-q">❌ If we wanted to make it worse: "${inv.worse}"</div>
+            <button class="flip-btn" onclick="toggleReveal(this)">Flip it ▾</button>
+            <div class="reveal-answer">✅ <strong>Insight:</strong> ${inv.flip}</div>
+          </div>`).join('');
+    }
+    if (tabIdx === 1) { // Facilitator Hints
+      return `<div class="coach-label">Facilitator hints for the inversion blitz</div>
+        <div class="coach-card tip">
+          <div class="coach-q">Why inversion works</div>
+          <div class="coach-a">People find it easier to imagine failure than success. Asking "how would you guarantee this fails?" bypasses mental blocks and produces more honest, creative insights than asking "how would you fix this?"</div>
+        </div>
+        <div class="coach-card">
+          <div class="coach-q">If groups get stuck</div>
+          <div class="coach-a">Prompt with: "What would a really bad L1 agent do here?" or "What's the most common shortcut that backfires?" This unlocks thinking because it feels less personal.</div>
+        </div>
+        <div class="coach-card warn">
+          <div class="coach-q">Common inversion mistake</div>
+          <div class="coach-a">Groups often list things that are already bad (e.g. "not knowing GHL") rather than things they might actually do under pressure. Push them toward behaviours, not skills gaps.</div>
+        </div>
+        <div class="coach-card tip">
+          <div class="coach-q">Best flip to watch for</div>
+          <div class="coach-a">The most powerful flips usually relate to process shortcuts agents take under time pressure — jumping to fixes, not documenting, not pausing automations. These are real behaviours worth naming.</div>
+        </div>`;
+    }
+    if (tabIdx === 2) { // Debrief Guide
+      return `<div class="coach-label">Inversion debrief guide</div>
+        <div class="coach-card">
+          <div class="coach-q">Opening debrief question</div>
+          <div class="coach-a">"Which 'make it worse' item felt the most familiar? Have you seen it — or almost done it yourself?" This creates psychological safety by normalising the behaviour before critiquing it.</div>
+        </div>
+        <div class="coach-card tip">
+          <div class="coach-q">What to highlight in the flips</div>
+          <div class="coach-a">Look for flips that reveal a pattern: pausing before acting, documenting before escalating, testing before communicating. These are L1→L2 mindset shifts and worth naming explicitly.</div>
+        </div>
+        <div class="coach-card">
+          <div class="coach-q">Closing the blitz</div>
+          <div class="coach-a">Ask: "If you could only implement one of these flips starting tomorrow, which would it be?" This forces prioritisation and creates a personal commitment anchor before moving on.</div>
+        </div>`;
+    }
+  }
+
+  if (panelIdx === 2) {
+    if (tabIdx === 0) { // Sample Questions
+      return `<div class="coach-label">Sample pair questions — ${s.label}</div>` +
+        s.sampleQuestions.map((q,i) => `
+          <div class="coach-card ${i===0?'tip':''}">
+            <div class="coach-q">${i===0?'⭐ ':''}${q}</div>
+            <button class="flip-btn" onclick="toggleReveal(this)">Diagnostic or solutioning? ▾</button>
+            <div class="reveal-answer">${i===0?'<strong>Diagnostic</strong> — this establishes the change timeline before any action is taken. The single most important first question for almost any GHL issue.':'This is a <strong>'+(i<3?'diagnostic':'solutioning')+'</strong> question. '+(i<3?'It seeks to understand what happened before deciding what to do.':'It assumes the problem is known and jumps to fixing — useful only after diagnosis is complete.')}</div>
+          </div>`).join('');
+    }
+    if (tabIdx === 1) { // Ideal Question
+      return `<div class="coach-label">The ideal first question — ${s.label}</div>
+        <div class="coach-card tip">
+          <div class="coach-q">⭐ "${s.idealQuestion}"</div>
+          <div class="coach-a">This is the highest-leverage first question for this scenario. Here's why it unlocks the most value:</div>
+        </div>
+        <div class="coach-card">
+          <div class="coach-q">Why this question is diagnostic, not solutioning</div>
+          <div class="coach-a">It doesn't assume a cause. It creates a timeline. It forces the client to surface what changed — which in 80% of GHL issues is the direct cause of the problem. Once you know what changed, you know where to look.</div>
+        </div>
+        <div class="coach-card warn">
+          <div class="coach-q">The most common solutioning trap for this scenario</div>
+          <div class="coach-a">Agents usually ask "Can I look at your workflow/form/calendar?" This jumps straight to the assumed location of the problem — but without knowing what changed, you're searching without a map. Ask first. Look second.</div>
+        </div>`;
+    }
+    if (tabIdx === 2) { // Debrief Points
+      return `<div class="coach-label">Question drill debrief points</div>
+        <div class="coach-card tip">
+          <div class="coach-q">Opening debrief question</div>
+          <div class="coach-a">"Look at everyone's questions — how many start with 'What' or 'Why' vs 'Can I' or 'Have you tried'?" The first group is diagnostic; the second is solutioning. Count the ratio and show it visually.</div>
+        </div>
+        <div class="coach-card">
+          <div class="coach-q">The key insight to land</div>
+          <div class="coach-a">The quality of your first question determines the quality of your resolution. One great diagnostic question saves 30 minutes of guessing. This is the most transferable L1→L2 skill in support work.</div>
+        </div>
+        <div class="coach-card">
+          <div class="coach-q">Practice prompt for the group</div>
+          <div class="coach-a">"What is your default first question when a client calls with a GHL problem?" Have everyone write it down. This surfaces their current pattern — and gives them something to deliberately change after today.</div>
+        </div>
+        <div class="coach-card warn">
+          <div class="coach-q">Watch for this pattern</div>
+          <div class="coach-a">Some agents ask great diagnostic questions but don't wait for the full answer before jumping to a fix. Ask good questions AND listen completely before acting — both parts matter equally.</div>
+        </div>`;
+    }
+  }
+
+  if (panelIdx === 3) {
+    if (tabIdx === 0) { // Closing Script
+      return `<div class="coach-label">Facilitator closing script</div>
+        <div class="coach-card tip">
+          <div class="coach-q">Opening the close (30 seconds)</div>
+          <div class="coach-a">"In the last 25 minutes, we ran through a real GHL crisis, broke our own worst habits, and challenged each other on the quality of our questions. Now I want one thing from each of you — one sentence you'll actually act on."</div>
+        </div>
+        <div class="coach-card">
+          <div class="coach-q">The commitment prompt</div>
+          <div class="coach-a">"Complete this sentence out loud or on paper: 'Next time I get a complex GHL support ticket, I will ___ before I do anything else.' Make it specific. Make it something you can actually do tomorrow."</div>
+        </div>
+        <div class="coach-card">
+          <div class="coach-q">Sample strong commitments</div>
+          <div class="coach-a"><ul><li>"...check the execution log before touching any settings"</li><li>"...pause any live automation before investigating"</li><li>"...ask what changed in the last 7 days before anything else"</li><li>"...submit a test entry myself in the first 2 minutes"</li><li>"...document what I checked before escalating"</li></ul></div>
+        </div>
+        <div class="coach-card warn">
+          <div class="coach-q">Closing the session</div>
+          <div class="coach-a">"Pick one person from today as your accountability partner. By end of next week, share one moment where you used something from today. That's the real measure of this session."</div>
+        </div>`;
+    }
+    if (tabIdx === 1) { // L1 → L2 Mindset
+      return `<div class="coach-label">L1 → L2 mindset shifts</div>
+        <div class="coach-card tip">
+          <div class="coach-q">From fix-mode to investigate-mode</div>
+          <div class="coach-a">L1 default: "What do I need to change to fix this?" L2 thinking: "What happened here, and why?" The second question leads to better fixes, faster resolution, and fewer recurrences.</div>
+        </div>
+        <div class="coach-card">
+          <div class="coach-q">From guessing to testing</div>
+          <div class="coach-a">L1 default: theorise based on experience. L2 habit: reproduce the issue with a test before assuming. A 30-second test beats 30 minutes of guessing every time.</div>
+        </div>
+        <div class="coach-card">
+          <div class="coach-q">From reacting to containing</div>
+          <div class="coach-a">L1 default: start fixing immediately. L2 habit: contain first (pause the automation, stop the damage), then diagnose, then fix. This is especially critical for live automations affecting real customers.</div>
+        </div>
+        <div class="coach-card">
+          <div class="coach-q">From solving to documenting</div>
+          <div class="coach-a">L1 default: fix it and move on. L2 habit: document what was checked, what was found, and what fixed it. This builds team knowledge and makes escalations faster and more credible.</div>
+        </div>
+        <div class="coach-card warn">
+          <div class="coach-q">From assuming to confirming</div>
+          <div class="coach-a">L1 default: "Stripe shows success so it's done." L2 habit: confirm in every system involved — Stripe AND GHL, form AND workflow, CRM field AND automation field. Never assume two systems are in sync.</div>
+        </div>`;
+    }
+    if (tabIdx === 2) { // Follow-up Actions
+      return `<div class="coach-label">Post-session follow-up actions</div>
+        <div class="coach-card tip">
+          <div class="coach-q">This week — individual actions</div>
+          <div class="coach-a"><ul><li>Apply your commitment sentence to the next complex ticket you receive</li><li>Share the execution log tip with at least one teammate who wasn't in the session</li><li>Check in with your accountability partner by end of week</li></ul></div>
+        </div>
+        <div class="coach-card">
+          <div class="coach-q">This week — team actions</div>
+          <div class="coach-a"><ul><li>Add "Check execution log first" to your team's L1 troubleshooting checklist</li><li>Create a shared note or doc with the 5 GHL scenarios and their ideal first questions</li><li>Flag any real tickets where today's frameworks were applied</li></ul></div>
+        </div>
+        <div class="coach-card">
+          <div class="coach-q">Next session suggestions</div>
+          <div class="coach-a"><ul><li>Run the same format with 5 new scenarios (Voice AI, White-label branding, Email deliverability, Social Planner, Affiliate tracking)</li><li>Add a "live ticket review" segment — debrief a real recent ticket the team found challenging</li><li>Run a 15-minute "escalation quality" drill — practice writing a perfect escalation brief</li></ul></div>
+        </div>
+        <div class="coach-card warn">
+          <div class="coach-q">Measure behaviour change</div>
+          <div class="coach-a">In 2 weeks, ask the team: "What's one thing you did differently on a ticket because of this session?" Concrete examples = the session worked. Blank stares = run it again with different scenarios.</div>
+        </div>`;
+    }
+  }
+
+  return '<div class="no-insights" style="color:var(--muted);font-size:13px">Content loading...</div>';
+}
+
+// ============================================================
+// STATE
+// ============================================================
+let activeScenario = 0;
+let activeCoachTabs = [0,0,0,0];
+const votes = {};
+const pairVotes = {};
+const insightsList = [];
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderScenarios() {
+  document.getElementById('snav').innerHTML = scenarios.map((s,i) =>
+    `<button class="snav-btn ${i===activeScenario?'active':''}" onclick="setScenario(${i})">${s.label}</button>`
+  ).join('');
+  renderScenarioCard();
+  renderCoach(0, activeCoachTabs[0]);
+  renderVotes();
+}
+
+function renderScenarioCard() {
+  const s = scenarios[activeScenario];
+  const dc = {med:'d-med',hard:'d-hard',easy:'d-easy'}[s.difficulty];
+  const dt = {med:'Medium',hard:'Hard',easy:'Starter'}[s.difficulty];
+  document.getElementById('scenario-display').innerHTML = `
+    <div class="scenario-card">
+      <div class="sc-top">
+        <div class="sc-label">Active Scenario · ${s.label}</div>
+        <span class="difficulty ${dc}">${dt}</span>
+      </div>
+      <div class="sc-title">${s.title}</div>
+      <div class="sc-desc">${s.desc}</div>
+      <div class="tag-row">${s.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    </div>`;
+}
+
+function setScenario(i) {
+  activeScenario = i;
+  renderScenarios();
+  for(let p=0;p<4;p++) renderCoach(p, activeCoachTabs[p]);
+}
+
+function renderCoach(panelIdx, tabIdx) {
+  const body = document.getElementById(`coach-body-${panelIdx}`);
+  if (!body) return;
+  const panes = body.querySelectorAll('.coach-pane');
+  panes.forEach(p => p.remove());
+  body.innerHTML = getCoachContent(panelIdx, tabIdx, activeScenario);
+}
+
+function switchCoach(panelIdx, tabIdx) {
+  activeCoachTabs[panelIdx] = tabIdx;
+  const tabs = document.querySelectorAll(`#panel-${panelIdx} .coach-tab`);
+  tabs.forEach((t,i) => t.classList.toggle('active', i===tabIdx));
+  renderCoach(panelIdx, tabIdx);
+}
+
+function toggleReveal(btn) {
+  const ans = btn.nextElementSibling;
+  const open = ans.classList.toggle('open');
+  btn.textContent = open ? 'Hide ▴' : (btn.textContent.includes('Flip') ? 'Flip it ▾' : btn.textContent.includes('why') ? 'Why it matters ▾' : btn.textContent.includes('Diagnostic') ? 'Diagnostic or solutioning? ▾' : 'Show facilitator answer ▾');
+}
+
+function renderVotes() {
+  const voteOptions = [
+    '"Pause any live automation before touching anything"',
+    '"Ask what changed in the last 7 days first"',
+    '"Check the execution log / submission log immediately"',
+    '"Submit a test entry to reproduce the issue myself"',
+    '"Document findings before escalating to L2"'
+  ];
+  const vkey = `v_${activeScenario}`;
+  if (!votes[vkey]) votes[vkey] = voteOptions.map(()=>0);
+  const total = votes[vkey].reduce((a,b)=>a+b,0);
+  document.getElementById('vote-list').innerHTML = voteOptions.map((opt,i) => {
+    const pct = total ? Math.round(votes[vkey][i]/total*100) : 0;
+    return `<div class="vote-item" onclick="castVote(${i})">
+      <div class="vote-fill" style="width:${pct}%"></div>
+      <span class="vote-text">${opt}</span>
+      <span class="vote-count">${votes[vkey][i]}</span>
+      <span class="vote-pct">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+
+function castVote(i) {
+  const vkey = `v_${activeScenario}`;
+  votes[vkey][i]++;
+  renderVotes();
+  updateSummary();
+}
+function resetVotes() {
+  const vkey = `v_${activeScenario}`;
+  votes[vkey] = votes[vkey].map(()=>0);
+  renderVotes();
+}
+
+function renderPairVotes() {
+  const total = Object.values(pairVotes).reduce((a,b)=>a+b,0);
+  const list = document.getElementById('pair-vote-list');
+  if (!Object.keys(pairVotes).length) {
+    list.innerHTML = '<span class="no-insights">Add pair questions below to start voting.</span>';
+    return;
+  }
+  list.innerHTML = Object.entries(pairVotes).map(([q,c]) => {
+    const pct = total ? Math.round(c/total*100) : 0;
+    const safeQ = q.replace(/'/g,"\\'");
+    return `<div class="vote-item" onclick="castPairVote('${safeQ}')">
+      <div class="vote-fill" style="width:${pct}%"></div>
+      <span class="vote-text">${q}</span>
+      <span class="vote-count">${c}</span>
+      <span class="vote-pct">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+function castPairVote(q) { if(pairVotes[q]!==undefined){pairVotes[q]++;} renderPairVotes(); updateSummary(); }
+function resetPairVotes() { Object.keys(pairVotes).forEach(k=>pairVotes[k]=0); renderPairVotes(); }
+function addPairQuestion() {
+  const input = document.getElementById('new-question');
+  const q = input.value.trim(); if(!q) return;
+  pairVotes[q] = 0; input.value = '';
+  renderPairVotes();
+}
+
+function selectDisc(type) {
+  document.getElementById('disc-diag').classList.toggle('selected', type==='diag');
+  document.getElementById('disc-sol').classList.toggle('selected', type==='sol');
+}
+
+function addInsight() {
+  const input = document.getElementById('new-insight');
+  const text = input.value.trim(); if(!text) return;
+  insightsList.push(text); input.value = '';
+  renderInsights(); updateSummary();
+}
+function renderInsights() {
+  const el = document.getElementById('insights-list');
+  if (!insightsList.length) { el.innerHTML = '<span class="no-insights">No insights added yet.</span>'; return; }
+  el.innerHTML = insightsList.map((item,i) => `
+    <div class="insight-item">
+      <span class="insight-num">#${i+1}</span>
+      <span>${item}</span>
+    </div>`).join('');
+}
+function updateSummary() {
+  document.getElementById('s-insights').textContent = insightsList.length;
+  const totalV = Object.values(votes).flat().reduce((a,b)=>a+b,0) + Object.values(pairVotes).reduce((a,b)=>a+b,0);
+  document.getElementById('s-votes').textContent = totalV;
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+let totalSeconds=1800, elapsed=0, timerInterval=null;
+const phases=[
+  {start:0,end:300,label:"Phase 1: Scenario Drop (0–5 min)",panel:0},
+  {start:300,end:900,label:"Phase 2: Inversion Blitz (5–15 min)",panel:1},
+  {start:900,end:1500,label:"Phase 3: Question Drill (15–25 min)",panel:2},
+  {start:1500,end:1800,label:"Phase 4: Commit & Close (25–30 min)",panel:3}
+];
+function startTimer() {
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;document.getElementById('start-btn').textContent='Start';return;}
+  document.getElementById('start-btn').textContent='Pause';
+  timerInterval=setInterval(()=>{
+    elapsed++;
+    const remaining=totalSeconds-elapsed;
+    if(remaining<=0){clearInterval(timerInterval);document.getElementById('timer').textContent='00:00';document.getElementById('phase-label').textContent='✅ Session complete!';return;}
+    const m=String(Math.floor(remaining/60)).padStart(2,'0');
+    const s=String(remaining%60).padStart(2,'0');
+    document.getElementById('timer').textContent=`${m}:${s}`;
+    document.getElementById('progress-fill').style.width=`${(remaining/totalSeconds)*100}%`;
+    const phase=phases.find(p=>elapsed>=p.start&&elapsed<p.end);
+    if(phase){
+      document.getElementById('phase-label').textContent=phase.label;
+      if(elapsed===phase.start||elapsed===phase.start+1) switchPanel(phase.panel);
+    }
+  },1000);
+}
+function resetTimer() {
+  clearInterval(timerInterval);timerInterval=null;elapsed=0;
+  document.getElementById('timer').textContent='30:00';
+  document.getElementById('phase-label').textContent='Ready to begin';
+  document.getElementById('progress-fill').style.width='100%';
+  document.getElementById('start-btn').textContent='Start';
+  switchPanel(0);
+}
+function switchPanel(i) {
+  document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',j===i));
+  document.querySelectorAll('.ptab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  renderCoach(i, activeCoachTabs[i]);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderScenarios();
+renderPairVotes();
+renderInsights();
+for(let p=0;p<4;p++) renderCoach(p, activeCoachTabs[p]);
+</script>
+</body>
+</html>
