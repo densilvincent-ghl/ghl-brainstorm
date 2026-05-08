@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GHL Support Brain Sprint</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0f0f13;
+    --surface: #17171e;
+    --surface2: #1e1e28;
+    --border: rgba(255,255,255,0.08);
+    --accent: #7c5cfc;
+    --accent2: #00d4aa;
+    --accent3: #ff6b6b;
+    --text: #f0f0f5;
+    --muted: #8888a0;
+    --card-bg: #1a1a24;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 20px 48px;
+  }
+
+  h1, h2, h3, .label {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* HEADER */
+  .header {
+    max-width: 860px;
+    margin: 0 auto 28px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .header-left h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    background: linear-gradient(135deg, #fff 0%, #a89aff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header-left p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .meta-chips { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .chip {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 11px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+  }
+  .chip.green { border-color: rgba(0,212,170,0.3); color: var(--accent2); background: rgba(0,212,170,0.08); }
+  .chip.purple { border-color: rgba(124,92,252,0.3); color: #c4b5fd; background: rgba(124,92,252,0.08); }
+
+  /* TIMER */
+  .timer-bar {
+    max-width: 860px;
+    margin: 0 auto 24px;
+    background: var(--surface);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .timer-display {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent2);
+    min-width: 90px;
+    letter-spacing: 1px;
+  }
+  .timer-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .progress-wrap { flex: 1; min-width: 160px; }
+  .progress-bg { height: 6px; background: rgba(255,255,255,0.07); border-radius: 3px; overflow: hidden; }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 3px;
+    transition: width 1s linear;
+    width: 100%;
+  }
+  .timer-btns { display: flex; gap: 8px; }
+  .tbtn {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all .15s;
+    background: var(--surface2);
+    color: var(--text);
+  }
+  .tbtn:hover { border-color: var(--accent); color: #c4b5fd; }
+  .tbtn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tbtn.primary:hover { background: #6d4ef0; }
+
+  /* PHASE TABS */
+  .phase-tabs {
+    max-width: 860px;
+    margin: 0 auto 20px;
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 5px;
+    border: 1px solid var(--border);
+  }
+  .ptab {
+    flex: 1;
+    text-align: center;
+    padding: 9px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .ptab:hover { color: var(--text); background: var(--surface2); }
+  .ptab.active {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
+  .ptab .pt-num {
+    display: block;
+    font-size: 10px;
+    opacity: 0.7;
+    margin-bottom: 2px;
+  }
+
+  /* PANELS */
+  .panel { max-width: 860px; margin: 0 auto; display: none; }
+  .panel.active { display: block; }
+
+  /* SCENARIO CARD */
+  .scenario-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px 24px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .scenario-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 16px 16px 0 0;
+  }
+  .sc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+  .sc-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--accent2);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .difficulty {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .d-med { background: rgba(255,184,0,0.12); color: #ffd166; border: 1px solid rgba(255,209,102,0.2); }
+  .d-hard { background: rgba(255,107,107,0.1); color: #ff8585; border: 1px solid rgba(255,107,107,0.2); }
+  .d-easy { background: rgba(0,212,170,0.1); color: var(--accent2); border: 1px solid rgba(0,212,170,0.2); }
+  .sc-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+  .sc-desc {
+    font-size: 14px;
+    color: #b0b0c8;
+    line-height: 1.6;
+  }
+  .sc-actions { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .sc-btn {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .sc-btn:hover { border-color: var(--accent); color: #c4b5fd; }
+  .sc-btn.highlight { border-color: rgba(124,92,252,0.4); color: #c4b5fd; background: rgba(124,92,252,0.1); }
+
+  /* 2-COL GRID */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  @media(max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* DISCUSSION CARDS */
+  .disc-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .disc-card:hover { border-color: rgba(124,92,252,0.4); background: rgba(124,92,252,0.05); }
+  .disc-card.selected { border-color: var(--accent); background: rgba(124,92,252,0.1); }
+  .disc-icon { font-size: 20px; margin-bottom: 8px; }
+  .disc-title { font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+  .disc-text { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  /* NOTES AREA */
+  .notes-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .notes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media(max-width: 580px) { .notes-grid { grid-template-columns: 1fr; } }
+  .note-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    resize: vertical;
+    min-height: 90px;
+    transition: border-color .15s;
+    outline: none;
+  }
+  .note-input:focus { border-color: var(--accent); }
+  .note-label { font-size: 11px; color: var(--muted); margin-bottom: 5px; font-weight: 500; font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; letter-spacing: .05em; }
+  .note-wrap { display: flex; flex-direction: column; }
+
+  /* AI RESPONSE */
+  .ai-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .ai-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .ai-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent2);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .ai-label { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; color: var(--accent2); }
+  .ai-body {
+    font-size: 14px;
+    color: #c0c0d8;
+    line-height: 1.7;
+    min-height: 60px;
+    white-space: pre-wrap;
+  }
+  .ai-placeholder { color: var(--muted); font-style: italic; font-size: 13px; }
+
+  .ask-input-row { display: flex; gap: 8px; margin-top: 14px; }
+  .ask-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .ask-input:focus { border-color: var(--accent); }
+  .ask-input::placeholder { color: var(--muted); }
+  .send-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 18px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: background .15s;
+    white-space: nowrap;
+  }
+  .send-btn:hover { background: #6d4ef0; }
+  .send-btn:disabled { background: #444; cursor: not-allowed; }
+
+  /* VOTE SECTION */
+  .vote-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .vote-items { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .vote-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all .15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .vote-item:hover { border-color: rgba(124,92,252,0.4); }
+  .vote-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    background: rgba(124,92,252,0.1);
+    border-radius: 10px;
+    transition: width .4s ease;
+  }
+  .vote-text { font-size: 13px; color: var(--text); position: relative; z-index: 1; flex: 1; }
+  .vote-count { font-size: 12px; font-weight: 700; color: var(--accent); font-family: 'Space Grotesk', sans-serif; position: relative; z-index: 1; }
+  .vote-pct { font-size: 11px; color: var(--muted); position: relative; z-index: 1; }
+
+  /* SCENARIO NAV */
+  .scenario-nav {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .snav-btn {
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .15s;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+  }
+  .snav-btn.active { background: rgba(124,92,252,0.15); border-color: var(--accent); color: #c4b5fd; }
+  .snav-btn:hover { border-color: rgba(124,92,252,0.4); color: var(--text); }
+
+  /* INSIGHTS BOARD */
+  .insights-board {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .insights-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .insight-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-radius: 10px;
+    border-left: 2px solid var(--accent2);
+    font-size: 13px;
+    line-height: 1.5;
+    color: #c0c0d8;
+  }
+  .insight-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent2);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .no-insights { color: var(--muted); font-size: 13px; font-style: italic; }
+  .add-insight-row { display: flex; gap: 8px; margin-top: 10px; }
+  .add-insight-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+  }
+  .add-insight-input:focus { border-color: var(--accent2); }
+  .add-btn {
+    background: rgba(0,212,170,0.15);
+    border: 1px solid rgba(0,212,170,0.3);
+    color: var(--accent2);
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    transition: all .15s;
+  }
+  .add-btn:hover { background: rgba(0,212,170,0.25); }
+
+  /* SECTION HINT */
+  .hint {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    line-height: 1.5;
+    padding: 10px 14px;
+    background: rgba(124,92,252,0.06);
+    border-radius: 10px;
+    border-left: 2px solid rgba(124,92,252,0.4);
+  }
+
+  /* SUMMARY */
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  @media(max-width: 580px) { .summary-grid { grid-template-columns: 1fr; } }
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  /* LOADING */
+  .loader {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .loader span {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: bounce .9s infinite;
+  }
+  .loader span:nth-child(2) { animation-delay: .15s; }
+  .loader span:nth-child(3) { animation-delay: .3s; }
+  @keyframes bounce { 0%,80%,100%{transform:scale(0.6);opacity:.5} 40%{transform:scale(1.2);opacity:1} }
+
+  .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .tag {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .tag.orange { background: rgba(255,184,0,0.08); color: #ffd166; border-color: rgba(255,209,102,0.2); }
+  .tag.pink { background: rgba(255,107,107,0.08); color: #ff8585; border-color: rgba(255,107,107,0.2); }
+  .tag.teal { background: rgba(0,212,170,0.08); color: var(--accent2); border-color: rgba(0,212,170,0.2); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>⚡ GHL Support Brain Sprint</h1>
+    <p>30-min interactive session · 14 agents · Problem-solving & critical thinking</p>
+  </div>
+  <div class="meta-chips">
+    <span class="chip purple">GoHighLevel</span>
+    <span class="chip green">L1 Consultants</span>
+    <span class="chip">14 Members</span>
+  </div>
+</div>
+
+<!-- TIMER -->
+<div class="timer-bar">
+  <div>
+    <div class="timer-display" id="timer">30:00</div>
+    <div class="timer-label" id="phase-label">Ready to begin</div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bg"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+  <div class="timer-btns">
+    <button class="tbtn primary" id="start-btn" onclick="startTimer()">Start</button>
+    <button class="tbtn" onclick="resetTimer()">Reset</button>
+  </div>
+</div>
+
+<!-- PHASE TABS -->
+<div class="phase-tabs">
+  <div class="ptab active" onclick="switchPanel(0)">
+    <span class="pt-num">0–5 min</span>
+    Scenario Drop
+  </div>
+  <div class="ptab" onclick="switchPanel(1)">
+    <span class="pt-num">5–15 min</span>
+    Inversion Blitz
+  </div>
+  <div class="ptab" onclick="switchPanel(2)">
+    <span class="pt-num">15–25 min</span>
+    Question Drill
+  </div>
+  <div class="ptab" onclick="switchPanel(3)">
+    <span class="pt-num">25–30 min</span>
+    Commit & Close
+  </div>
+</div>
+
+<!-- PANEL 0: SCENARIO DROP -->
+<div class="panel active" id="panel-0">
+  <div class="hint">🎯 Facilitator: Read the scenario aloud. Ask 3–4 people for their instant diagnosis. Don't correct — just listen and map what you hear.</div>
+
+  <div class="scenario-nav" id="snav"></div>
+
+  <div id="scenario-display"></div>
+
+  <div class="ai-section">
+    <div class="ai-header">
+      <div class="ai-dot"></div>
+      <div class="ai-label">AI Discussion Coach</div>
+    </div>
+    <div class="ai-body" id="ai-output-0">
+      <span class="ai-placeholder">Ask the AI to generate discussion prompts, deeper context, or coach you through the scenario.</span>
+    </div>
+    <div class="ask-input-row">
+      <input class="ask-input" id="ai-input-0" placeholder="e.g. Give me 3 discussion questions for this scenario..." onkeydown="if(event.key==='Enter')askAI(0)">
+      <button class="send-btn" id="ai-btn-0" onclick="askAI(0)">Ask AI</button>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL 1: INVERSION BLITZ -->
+<div class="panel" id="panel-1">
+  <div class="hint">✦ Split into 4 groups of 3–4. Each group gets the active scenario. Task: list 5 ways to <strong style="color:#ff8585">make this problem worse</strong>. Then flip each into an insight.</div>
+
+  <div class="notes-section">
+    <div class="notes-header">
+      <span class="section-title">Group Workspace — Inversion Notes</span>
+    </div>
+    <div class="notes-grid">
+      <div class="note-wrap">
+        <div class="note-label">Group A — Make it worse...</div>
+        <textarea class="note-input" id="note-a" placeholder="List 5 ways to guarantee this problem gets worse..."></textarea>
+      </div>
+      <div class="note-wrap">
+        <div class="note-label">Group A — Flipped insights</div>
+        <textarea class="note-input" id="note-a2" placeholder="Now flip each item into an improvement insight..."></textarea>
+      </div>
+      <div class="note-wrap">
+        <div class="note-label">Group B — Make it worse...</div>
+        <textarea class="note-input" id="note-b" placeholder=""></textarea>
+      </div>
+      <div class="note-wrap">
+        <div class="note-label">Group B — Flipped insights</div>
+        <textarea class="note-input" id="note-b2" placeholder=""></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="vote-section">
+    <div class="notes-header">
+      <span class="section-title">🔥 Best Inversion Insight — Team Vote</span>
+      <button class="sc-btn" onclick="resetVotes()">Reset</button>
+    </div>
+    <div class="vote-items" id="vote-list"></div>
+  </div>
+
+  <div class="ai-section">
+    <div class="ai-header">
+      <div class="ai-dot"></div>
+      <div class="ai-label">AI Discussion Coach</div>
+    </div>
+    <div class="ai-body" id="ai-output-1">
+      <span class="ai-placeholder">Ask for a hint, example inversions, or to evaluate a group's reasoning.</span>
+    </div>
+    <div class="ask-input-row">
+      <input class="ask-input" id="ai-input-1" placeholder="e.g. Give me an example of inversion thinking for this scenario..." onkeydown="if(event.key==='Enter')askAI(1)">
+      <button class="send-btn" id="ai-btn-1" onclick="askAI(1)">Ask AI</button>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL 2: QUESTION DRILL -->
+<div class="panel" id="panel-2">
+  <div class="hint">🔍 In pairs: agree on the single most important question you'd ask before solving the active scenario. Then share with the group and vote on the best one.</div>
+
+  <div class="two-col">
+    <div class="disc-card" id="disc-diag" onclick="selectDisc('diag')">
+      <div class="disc-icon">🔬</div>
+      <div class="disc-title">Diagnostic question</div>
+      <div class="disc-text">Seeks to understand <em>what</em> or <em>why</em> — finds the root before solving.</div>
+    </div>
+    <div class="disc-card" id="disc-sol" onclick="selectDisc('sol')">
+      <div class="disc-icon">⚡</div>
+      <div class="disc-title">Solutioning question</div>
+      <div class="disc-text">Jumps to <em>how</em> — fast but risky without diagnosis.</div>
+    </div>
+  </div>
+
+  <div class="vote-section">
+    <div class="notes-header">
+      <span class="section-title">💬 Pair Questions — Vote for Best</span>
+      <button class="sc-btn" onclick="resetPairVotes()">Reset</button>
+    </div>
+    <div class="vote-items" id="pair-vote-list"></div>
+    <div class="add-insight-row" style="margin-top:12px">
+      <input class="add-insight-input" id="new-question" placeholder="Add a pair's question here...">
+      <button class="add-btn" onclick="addPairQuestion()">Add</button>
+    </div>
+  </div>
+
+  <div class="ai-section">
+    <div class="ai-header">
+      <div class="ai-dot"></div>
+      <div class="ai-label">AI Discussion Coach</div>
+    </div>
+    <div class="ai-body" id="ai-output-2">
+      <span class="ai-placeholder">Ask the AI to evaluate a question's diagnostic quality or suggest the ideal question for this scenario.</span>
+    </div>
+    <div class="ask-input-row">
+      <input class="ask-input" id="ai-input-2" placeholder="e.g. Is this a diagnostic or solutioning question: '...'?" onkeydown="if(event.key==='Enter')askAI(2)">
+      <button class="send-btn" id="ai-btn-2" onclick="askAI(2)">Ask AI</button>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL 3: COMMIT & CLOSE -->
+<div class="panel" id="panel-3">
+  <div class="hint">✅ Each person writes one sentence: <em>"Next time I face a complex GHL support problem, I will..."</em> — Facilitator picks 4–5 to share aloud.</div>
+
+  <div class="summary-grid">
+    <div class="stat-card">
+      <div class="stat-num" id="s-insights">0</div>
+      <div class="stat-label">Insights captured</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="s-votes">0</div>
+      <div class="stat-label">Team votes cast</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">30</div>
+      <div class="stat-label">Minutes invested</div>
+    </div>
+  </div>
+
+  <div class="insights-board">
+    <div class="notes-header">
+      <span class="section-title">📌 Team Insights Board</span>
+    </div>
+    <div class="insights-list" id="insights-list">
+      <span class="no-insights">No insights added yet. Type one below.</span>
+    </div>
+    <div class="add-insight-row">
+      <input class="add-insight-input" id="new-insight" placeholder="Add a key takeaway from today's session...">
+      <button class="add-btn" onclick="addInsight()">Add</button>
+    </div>
+  </div>
+
+  <div class="notes-section">
+    <div class="section-title" style="margin-bottom:12px">Personal Commitment Cards</div>
+    <div class="notes-grid">
+      <div class="note-wrap">
+        <div class="note-label">My commitment</div>
+        <textarea class="note-input" id="commit-1" placeholder="Next time I face a complex GHL support problem, I will..."></textarea>
+      </div>
+      <div class="note-wrap">
+        <div class="note-label">Accountability partner notes</div>
+        <textarea class="note-input" id="commit-2" placeholder="My partner's name: ___&#10;We'll follow up by: ___"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="ai-section">
+    <div class="ai-header">
+      <div class="ai-dot"></div>
+      <div class="ai-label">AI Session Summariser</div>
+    </div>
+    <div class="ai-body" id="ai-output-3">
+      <span class="ai-placeholder">Ask the AI to summarise the session's key learnings or generate next steps.</span>
+    </div>
+    <div class="ask-input-row">
+      <input class="ask-input" id="ai-input-3" placeholder="e.g. Summarise what L1 GHL agents should do differently after today..." onkeydown="if(event.key==='Enter')askAI(3)">
+      <button class="send-btn" id="ai-btn-3" onclick="askAI(3)">Ask AI</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ======= SCENARIOS =======
+const scenarios = [
+  {
+    id: 0,
+    label: "CRM & Automation",
+    difficulty: "med",
+    title: "Workflow stopped triggering after a contact update",
+    desc: "A client reports that their lead nurture workflow — which was working fine last week — has stopped sending follow-up SMS messages after a new contact is added via a form. The client has 3 active workflows and recently made changes to their pipeline stages.",
+    tags: ["Workflows", "CRM", "SMS", "Triggers"],
+    hint: "Ask agents what their first instinct is. Do they jump to the workflow? Or do they first ask what changed?"
+  },
+  {
+    id: 1,
+    label: "AI Conversation Bot",
+    difficulty: "hard",
+    title: "Conversation AI is booking wrong appointment slots",
+    desc: "A client's AI chatbot is booking appointments outside working hours, including 2 AM slots. The bot is supposed to be restricted to 9 AM–6 PM only. The client is upset because three customers received wrong booking confirmations.",
+    tags: ["Conversation AI", "Calendar", "Booking", "AI Config"],
+    hint: "What data would you need before touching any settings? Who else might be affected right now?"
+  },
+  {
+    id: 2,
+    label: "Funnel & Website",
+    difficulty: "easy",
+    title: "Form submissions not creating contacts in CRM",
+    desc: "A client has a landing page with a lead capture form, but the last 48 hours of form submissions are not appearing in the CRM as new contacts. The form is live, the page is published, and the client is running paid ads to it.",
+    tags: ["Forms", "CRM", "Funnels", "Contacts"],
+    hint: "Is this a form mapping issue, a trigger issue, or a data issue? What's the fastest way to find out?"
+  },
+  {
+    id: 3,
+    label: "Reputation & Reviews",
+    difficulty: "med",
+    title: "Review request messages going to wrong number",
+    desc: "An agency client reports that their automated Google review request texts are being sent to an old phone number on record, not the updated one. The review automation is sending 100+ messages daily and several customers have complained.",
+    tags: ["Reviews", "SMS", "Contacts", "Automation"],
+    hint: "What's the blast radius? How many contacts are affected? Before you fix, what do you pause?"
+  },
+  {
+    id: 4,
+    label: "Billing & SaaS",
+    difficulty: "hard",
+    title: "Client's sub-account billing shows wrong plan after upgrade",
+    desc: "A white-label agency upgraded their client from Starter to Pro plan three days ago. The client's dashboard still shows Starter limits and they cannot access Pro features. The upgrade shows as completed in Stripe.",
+    tags: ["SaaS Mode", "Billing", "Stripe", "Sub-accounts"],
+    hint: "Stripe says done. GHL says otherwise. Where's the disconnect? Who owns the resolution path?"
+  }
+];
+
+let activeScenario = 0;
+const votes = {};
+const pairVotes = {};
+const insightsList = [];
+
+// RENDER SCENARIOS
+function renderScenarios() {
+  const snav = document.getElementById('snav');
+  snav.innerHTML = scenarios.map((s, i) => `
+    <button class="snav-btn ${i === activeScenario ? 'active' : ''}" onclick="setScenario(${i})">${s.label}</button>
+  `).join('');
+  renderScenarioCard();
+  renderVotes();
+}
+
+function renderScenarioCard() {
+  const s = scenarios[activeScenario];
+  const dClass = { med:'d-med', hard:'d-hard', easy:'d-easy' }[s.difficulty];
+  const dText = { med:'Medium', hard:'Hard', easy:'Starter' }[s.difficulty];
+  document.getElementById('scenario-display').innerHTML = `
+    <div class="scenario-card">
+      <div class="sc-top">
+        <div class="sc-label">Active Scenario · ${s.label}</div>
+        <span class="difficulty ${dClass}">${dText}</span>
+      </div>
+      <div class="sc-title">${s.title}</div>
+      <div class="sc-desc">${s.desc}</div>
+      <div class="tag-row">${s.tags.map(t => `<span class="tag teal">${t}</span>`).join('')}</div>
+      <div class="sc-actions">
+        <button class="sc-btn highlight" onclick="autoPrompt('What are the top 3 diagnostic questions for this scenario: ${s.title}?', 0)">Get discussion prompts</button>
+        <button class="sc-btn" onclick="autoPrompt('What are common L1 mistakes when handling: ${s.title}?', 0)">Common mistakes</button>
+        <button class="sc-btn" onclick="autoPrompt('What is the ideal step-by-step resolution path for: ${s.title} in GoHighLevel?', 0)">Ideal resolution</button>
+      </div>
+    </div>
+  `;
+}
+
+function setScenario(i) {
+  activeScenario = i;
+  renderScenarios();
+}
+
+function renderVotes() {
+  const s = scenarios[activeScenario];
+  const voteOptions = [
+    `"We need to pause the automation first before investigating"`,
+    `"Check the trigger conditions in the workflow immediately"`,
+    `"Ask the client what changed in the last 24–48 hours"`,
+    `"Test with a dummy contact to reproduce the issue"`,
+    `"Escalate to L2 and document the steps so far"`
+  ];
+  const vkey = `v_${activeScenario}`;
+  if (!votes[vkey]) votes[vkey] = voteOptions.map(() => 0);
+
+  const total = votes[vkey].reduce((a,b) => a+b, 0);
+  document.getElementById('vote-list').innerHTML = voteOptions.map((opt, i) => {
+    const pct = total ? Math.round(votes[vkey][i] / total * 100) : 0;
+    return `
+      <div class="vote-item" onclick="castVote(${i})">
+        <div class="vote-fill" style="width:${pct}%"></div>
+        <span class="vote-text">${opt}</span>
+        <span class="vote-count">${votes[vkey][i]}</span>
+        <span class="vote-pct">${pct}%</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function castVote(i) {
+  const vkey = `v_${activeScenario}`;
+  votes[vkey][i]++;
+  renderVotes();
+  updateSummary();
+}
+
+function resetVotes() {
+  const vkey = `v_${activeScenario}`;
+  votes[vkey] = votes[vkey].map(() => 0);
+  renderVotes();
+}
+
+// PAIR QUESTIONS
+function renderPairVotes() {
+  const total = Object.values(pairVotes).reduce((a,b) => a+b, 0);
+  const list = document.getElementById('pair-vote-list');
+  if (!Object.keys(pairVotes).length) {
+    list.innerHTML = '<span class="no-insights" style="font-size:13px;color:var(--muted)">Add pair questions below to start voting.</span>';
+    return;
+  }
+  list.innerHTML = Object.entries(pairVotes).map(([q, c]) => {
+    const pct = total ? Math.round(c / total * 100) : 0;
+    return `
+      <div class="vote-item" onclick="castPairVote('${q.replace(/'/g,"\\'")}')">
+        <div class="vote-fill" style="width:${pct}%"></div>
+        <span class="vote-text">${q}</span>
+        <span class="vote-count">${c}</span>
+        <span class="vote-pct">${pct}%</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function castPairVote(q) {
+  if (pairVotes[q] !== undefined) pairVotes[q]++;
+  renderPairVotes();
+  updateSummary();
+}
+
+function resetPairVotes() {
+  Object.keys(pairVotes).forEach(k => pairVotes[k] = 0);
+  renderPairVotes();
+}
+
+function addPairQuestion() {
+  const input = document.getElementById('new-question');
+  const q = input.value.trim();
+  if (!q) return;
+  pairVotes[q] = 0;
+  input.value = '';
+  renderPairVotes();
+}
+
+function selectDisc(type) {
+  document.getElementById('disc-diag').classList.toggle('selected', type === 'diag');
+  document.getElementById('disc-sol').classList.toggle('selected', type === 'sol');
+}
+
+// INSIGHTS
+function addInsight() {
+  const input = document.getElementById('new-insight');
+  const text = input.value.trim();
+  if (!text) return;
+  insightsList.push(text);
+  input.value = '';
+  renderInsights();
+  updateSummary();
+}
+
+function renderInsights() {
+  const el = document.getElementById('insights-list');
+  if (!insightsList.length) {
+    el.innerHTML = '<span class="no-insights">No insights added yet. Type one below.</span>';
+    return;
+  }
+  el.innerHTML = insightsList.map((item, i) => `
+    <div class="insight-item">
+      <span class="insight-num">#${i+1}</span>
+      <span>${item}</span>
+    </div>
+  `).join('');
+}
+
+function updateSummary() {
+  document.getElementById('s-insights').textContent = insightsList.length;
+  const totalV = Object.values(votes).flat().reduce((a,b)=>a+b,0) +
+                 Object.values(pairVotes).reduce((a,b)=>a+b,0);
+  document.getElementById('s-votes').textContent = totalV;
+}
+
+// ======= AI =======
+const SYSTEM = `You are an expert facilitator coach for a 30-minute GoHighLevel (GHL) customer support brainstorming session. 
+GHL is an all-in-one AI-powered CRM and marketing platform for agencies. It includes: CRM, workflows/automation, email/SMS marketing, funnels, website builder, Conversation AI, Voice AI, reputation management, calendars/booking, SaaS mode, and social planner.
+The participants are 14 L1 product consultants. Help them develop critical thinking and problem-solving skills in the context of real GHL support scenarios.
+Keep responses concise (under 180 words), practical, and specific to GHL. Use bullet points when listing. Be energetic and facilitative.`;
+
+async function askAI(panel) {
+  const input = document.getElementById(`ai-input-${panel}`);
+  const output = document.getElementById(`ai-output-${panel}`);
+  const btn = document.getElementById(`ai-btn-${panel}`);
+  const q = input.value.trim();
+  if (!q) return;
+
+  const s = scenarios[activeScenario];
+  const context = `Current scenario: "${s.title}" — ${s.desc}`;
+
+  btn.disabled = true;
+  output.innerHTML = '<div class="loader"><span></span><span></span><span></span></div>';
+  input.value = '';
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: SYSTEM,
+        messages: [{ role: "user", content: `${context}\n\nFacilitator question: ${q}` }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || "Sorry, couldn't get a response.";
+    output.textContent = text;
+  } catch(e) {
+    output.textContent = "Error reaching AI. Check your connection and try again.";
+  }
+  btn.disabled = false;
+}
+
+async function autoPrompt(q, panel) {
+  document.getElementById(`ai-input-${panel}`).value = q;
+  await askAI(panel);
+}
+
+// ======= TIMER =======
+let totalSeconds = 1800;
+let elapsed = 0;
+let timerInterval = null;
+const phases = [
+  { start: 0, end: 300, label: "Phase 1: Scenario Drop (0–5 min)", panel: 0 },
+  { start: 300, end: 900, label: "Phase 2: Inversion Blitz (5–15 min)", panel: 1 },
+  { start: 900, end: 1500, label: "Phase 3: Question Drill (15–25 min)", panel: 2 },
+  { start: 1500, end: 1800, label: "Phase 4: Commit & Close (25–30 min)", panel: 3 },
+];
+
+function startTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; document.getElementById('start-btn').textContent = 'Start'; return; }
+  document.getElementById('start-btn').textContent = 'Pause';
+  timerInterval = setInterval(() => {
+    elapsed++;
+    const remaining = totalSeconds - elapsed;
+    if (remaining <= 0) { clearInterval(timerInterval); document.getElementById('timer').textContent = '00:00'; document.getElementById('phase-label').textContent = '✅ Session complete!'; return; }
+    const m = String(Math.floor(remaining/60)).padStart(2,'0');
+    const s = String(remaining%60).padStart(2,'0');
+    document.getElementById('timer').textContent = `${m}:${s}`;
+    document.getElementById('progress-fill').style.width = `${(remaining/totalSeconds)*100}%`;
+    const phase = phases.find(p => elapsed >= p.start && elapsed < p.end);
+    if (phase) {
+      document.getElementById('phase-label').textContent = phase.label;
+      if (elapsed === phase.start || elapsed === phase.start + 1) switchPanel(phase.panel);
+    }
+  }, 1000);
+}
+
+function resetTimer() {
+  clearInterval(timerInterval); timerInterval = null;
+  elapsed = 0;
+  document.getElementById('timer').textContent = '30:00';
+  document.getElementById('phase-label').textContent = 'Ready to begin';
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('start-btn').textContent = 'Start';
+  switchPanel(0);
+}
+
+// ======= PANELS =======
+function switchPanel(i) {
+  document.querySelectorAll('.panel').forEach((p,j) => p.classList.toggle('active', j===i));
+  document.querySelectorAll('.ptab').forEach((t,j) => t.classList.toggle('active', j===i));
+}
+
+// INIT
+renderScenarios();
+renderPairVotes();
+renderInsights();
+</script>
+</body>
+</html>
